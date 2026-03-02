@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Movie Recommender</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #121212;
+            color: #ffffff;
+            padding: 40px;
+        }
+        .container {
+            max-width: 600px;
+            margin: auto;
+        }
+        input[type="text"] {
+            width: 80%;
+            padding: 10px;
+            border-radius: 8px;
+            border: none;
+            margin-bottom: 20px;
+        }
+        input[type="submit"] {
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: none;
+            background-color: #03dac6;
+            color: #000;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .results {
+            margin-top: 30px;
+        }
+        .error {
+            color: #ff5252;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎬 Movie Recommender</h1>
+        <form method="post">
+            <input type="text" name="movie" placeholder="Enter a movie name..." required />
+            <input type="submit" value="Recommend" />
+        </form>
+
+        {% if error %}
+            <p class="error">{{ error }}</p>
+        {% endif %}
+
+        {% if recommendations %}
+            <div class="results">
+                <h3>Recommended Movies:</h3>
+                <ul>
+                    {% for movie in recommendations %}
+                        <li>{{ movie }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        {% endif %}
+    </div>
+</body>
+</html>
