@@ -1,0 +1,6 @@
+version: '3.3'
+services:
+  web:
+    image: narlarushikesh/cicd-project:latest
+    ports:
+      - "8501:8501"
