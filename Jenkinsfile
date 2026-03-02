@@ -2,60 +2,69 @@ pipeline {
     agent any
 
     environment {
-        IMAGE_NAME = "cicd-project"
-        TAG = "latest"
-        DOCKER_USER = "narlarushikesh"
-        DOCKER_REPO = "narlarushikesh/cicd-project"
+        DOCKER_USER  = "narlarushikesh"
+        DOCKER_REPO  = "narlarushikesh/cicd-project"
+        TAG          = "${BUILD_NUMBER}"   // unique tag for every build
+        CONTAINER    = "cicd-container"
     }
 
     stages {
-        stage("Clone Code") {
+
+        stage("Checkout Code") {
             steps {
-                echo "Cloning the code"
-                git url: "https://github.com/cse-narla-rushikesh/CICD-project.git", branch: "main"
+                echo "Checking out latest code from GitHub"
+                checkout scm
             }
         }
 
-        stage("Build") {
+        stage("Build Docker Image") {
             steps {
-                echo "Building the Docker image"
-                bat "docker build -t %IMAGE_NAME%:%TAG% ."
+                echo "Building fresh Docker image (no cache)"
+                bat """
+                    docker build --no-cache -t %DOCKER_REPO%:%TAG% .
+                """
             }
         }
 
         stage("Push to Docker Hub") {
             steps {
-                echo "Pushing to Docker Hub"
-                withCredentials([usernamePassword(credentialsId: "docker-hub-credentials", passwordVariable: "docker-hub-pass", usernameVariable: "docker-hub-id")]) {
+                echo "Pushing image to Docker Hub"
+                withCredentials([usernamePassword(
+                    credentialsId: "docker-hub-credentials",
+                    usernameVariable: "DOCKER_ID",
+                    passwordVariable: "DOCKER_PASS"
+                )]) {
                     bat """
-                        echo Logging into Docker Hub
-                        docker login -u %docker-hub-id% -p %docker-hub-pass%
-                        docker tag %IMAGE_NAME%:%TAG% %DOCKER_REPO%:%TAG%
+                        echo %DOCKER_PASS% | docker login -u %DOCKER_ID% --password-stdin
                         docker push %DOCKER_REPO%:%TAG%
                     """
                 }
             }
         }
 
-        stage("Deploy") {
+        stage("Deploy Container") {
             steps {
-                echo "Deploying the container"
+                echo "Stopping old container (if exists)"
                 bat """
-                    echo Stopping existing containers
-                    docker-compose down
-                    echo Deploying the new container
-                    docker-compose up -d
+                    docker stop %CONTAINER% || echo No running container
+                    docker rm %CONTAINER% || echo No container to remove
+
+                    echo Running new container
+                    docker run -d -p 5000:5000 --name %CONTAINER% %DOCKER_REPO%:%TAG%
                 """
             }
         }
     }
 
     post {
-        always {
-            echo "🎬 Pipeline completed."
+        success {
+            echo "✅ Pipeline executed successfully!"
         }
         failure {
-            echo "❌ Pipeline failed."
+            echo "❌ Pipeline failed!"
+        }
+        always {
+            echo "🎬 Build Number: ${BUILD_NUMBER}"
         }
     }
 }
