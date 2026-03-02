@@ -1,17 +1,18 @@
 # Use official Python image
 FROM python:3.10-slim
 
-# Set work directory
 WORKDIR /app
 
-# Copy project files
-COPY . .
+# Copy requirements first (better caching)
+COPY requirements.txt .
 
-# Install dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Expose port
-EXPOSE 8501
+# Copy remaining files
+COPY . .
 
-# Run the app
+# Expose Flask port
+EXPOSE 5000
+
+# Run Flask app properly
 CMD ["python", "app.py"]
