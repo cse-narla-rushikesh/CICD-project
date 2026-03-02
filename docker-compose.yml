@@ -3,4 +3,4 @@ services:
   web:
     image: narlarushikesh/cicd-project:latest
     ports:
-      - "8501:8501"
+      - "5000:5000"
